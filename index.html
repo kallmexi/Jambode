@@ -2,425 +2,346 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>XyStream - Nonton Film & Anime</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SteamShare Pro - Hub Database Akun</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Orbitron:wght@700;900&display=swap');
-
-        :root {
-            --primary: #ff0000;
-            --bg-dark: #000000;
-            --surface: #121212;
-        }
-
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: var(--bg-dark);
-            color: #ffffff;
-            user-select: none;
-            -webkit-user-select: none;
-            overflow-x: hidden;
-            margin: 0;
-            padding: 0;
-        }
-
-        /* Premium Logo Style */
-        .logo-font {
-            font-family: 'Orbitron', sans-serif;
-            background: linear-gradient(135deg, #ffffff 0%, #ff0000 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: -1px;
-        }
-
-        /* Bottom Nav Glassmorphism */
-        .bottom-nav {
-            background: rgba(10, 10, 10, 0.85);
-            backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
-            padding-bottom: env(safe-area-inset-bottom);
-        }
-
-        /* Full Screen Detail View */
-        #fullDetailView {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: var(--bg-dark);
-            z-index: 1000;
-            display: none;
-            overflow-y: auto;
-            scrollbar-width: none;
-        }
-
-        /* Skeleton Animation */
-        .skeleton {
-            background: linear-gradient(90deg, #111 25%, #222 50%, #111 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-
-        .category-pill {
-            flex: 0 0 auto;
-            padding: 8px 16px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 700;
-            background: rgba(255,255,255,0.05);
-            transition: all 0.3s;
-        }
-
-        .category-pill.active {
-            background: var(--primary);
-            box-shadow: 0 4px 12px rgba(255, 0, 0, 0.3);
-        }
-
-        /* Video Iframe container */
-        .video-container {
-            position: relative;
-            width: 100%;
-            padding-top: 56.25%; /* 16:9 Aspect Ratio */
-            background: #000;
-        }
-
-        .video-container iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
-
-        /* Smooth page transition */
-        .fade-in { animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-    </style>
-    <script>
-        // Anti-Inspect & Security
-        document.addEventListener('contextmenu', e => e.preventDefault());
-        document.onkeydown = function(e) {
-            if (e.keyCode == 123 || (e.ctrlKey && e.shiftKey && [73, 67, 74].includes(e.keyCode)) || (e.ctrlKey && e.keyCode == 85)) return false;
-        };
-    </script>
-</head>
-<body class="no-scrollbar">
-
-    <!-- Top Header -->
-    <header class="fixed top-0 w-full z-50 px-6 py-4 flex items-center justify-between bg-gradient-to-b from-black/80 to-transparent">
-        <h1 class="logo-font text-2xl font-black italic">XYSTREAM</h1>
-        <div class="flex items-center gap-4">
-            <button onclick="toggleSearch()" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center">
-                <i class="fas fa-search text-sm text-gray-400"></i>
-            </button>
-        </div>
-    </header>
-
-    <!-- Search Overlay -->
-    <div id="searchOverlay" class="fixed inset-0 bg-black z-[100] hidden flex-col p-6">
-        <div class="flex items-center gap-4 mb-8">
-            <button onclick="toggleSearch()" class="text-xl"><i class="fas fa-arrow-left"></i></button>
-            <input type="text" id="searchInput" placeholder="Cari film atau anime..." 
-                class="flex-1 bg-white/10 border-none rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-red-600 outline-none">
-        </div>
-        <div id="searchResults" class="grid grid-cols-2 gap-4 overflow-y-auto pb-20"></div>
-    </div>
-
-    <!-- Main Scrollable Area -->
-    <main class="pt-24 pb-32 px-4">
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
         
-        <!-- Category Slider -->
-        <div class="flex gap-3 overflow-x-auto no-scrollbar mb-8 pb-2">
-            <div onclick="navigate('trending')" id="pill-trending" class="category-pill active">Trending</div>
-            <div onclick="navigate('indonesian-movies')" id="pill-indonesian-movies" class="category-pill">Film Indo</div>
-            <div onclick="navigate('anime')" id="pill-anime" class="category-pill">Anime</div>
-            <div onclick="navigate('kdrama')" id="pill-kdrama" class="category-pill">K-Drama</div>
-            <div onclick="navigate('short-tv')" id="pill-short-tv" class="category-pill">Short TV</div>
-            <div onclick="navigate('adult-comedy')" id="pill-adult-comedy" class="category-pill text-red-500">18+</div>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1b2838;
+            color: #c7d5e0;
+            overflow-x: hidden;
+        }
+
+        /* Loading Screen */
+        #loading-screen {
+            position: fixed;
+            inset: 0;
+            background: #171a21;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease-out;
+        }
+
+        .loader-text {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #66c0f4;
+            letter-spacing: 0.2rem;
+            text-transform: uppercase;
+            text-align: center;
+            animation: pulse-text 1.5s infinite;
+        }
+
+        @keyframes pulse-text {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.05); }
+        }
+
+        .steam-gradient {
+            background: radial-gradient(at top left, #1b2838 0%, #171a21 100%);
+        }
+
+        .card-glass {
+            background: rgba(42, 71, 94, 0.3);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(102, 192, 244, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .card-glass:hover {
+            transform: translateY(-5px);
+            border-color: rgba(102, 192, 244, 0.4);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+        }
+
+        .ad-container {
+            background: rgba(0,0,0,0.4);
+            border: 1px dashed #4b5563;
+            overflow: hidden;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        #adminPanel {
+            display: none;
+            border: 2px dashed #f59e0b;
+            background: rgba(245, 158, 11, 0.05);
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body class="steam-gradient min-h-screen">
+
+    <!-- Screen Loading -->
+    <div id="loading-screen">
+        <div class="mb-4 text-center">
+            <i class="fa-brands fa-steam text-7xl text-[#66c0f4] mb-4"></i>
+            <div class="loader-text">DATABASE AKTIF</div>
+            <div class="mt-2 text-gray-500 text-xs tracking-[0.3em] uppercase opacity-50">Menyiapkan Database Akun...</div>
         </div>
-
-        <h2 id="sectionTitle" class="text-xl font-black italic mb-6 border-l-4 border-red-600 pl-3 uppercase">TRENDING SEKARANG</h2>
-
-        <!-- Movie Grid -->
-        <div id="movieGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-4 md:gap-6">
-            <!-- Items injected by JS -->
-        </div>
-
-        <!-- Load More -->
-        <div id="loadMoreArea" class="mt-12 flex justify-center hidden">
-            <button onclick="loadMore()" class="bg-white/5 border border-white/10 text-white px-8 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest active:scale-95 transition">
-                Muat Lebih Banyak
-            </button>
-        </div>
-    </main>
-
-    <!-- Bottom Navigation -->
-    <nav class="bottom-nav fixed bottom-0 w-full flex justify-around items-center py-3 z-[60]">
-        <button onclick="navigate('trending')" class="flex flex-col items-center gap-1 text-red-600">
-            <i class="fas fa-home text-lg"></i>
-            <span class="text-[10px] font-bold">Beranda</span>
-        </button>
-        <button onclick="navigate('anime')" class="flex flex-col items-center gap-1 text-gray-500">
-            <i class="fas fa-dragon text-lg"></i>
-            <span class="text-[10px] font-bold">Anime</span>
-        </button>
-        <button onclick="navigate('indonesian-movies')" class="flex flex-col items-center gap-1 text-gray-500">
-            <i class="fas fa-film text-lg"></i>
-            <span class="text-[10px] font-bold">Lokal</span>
-        </button>
-        <button onclick="toggleSearch()" class="flex flex-col items-center gap-1 text-gray-500">
-            <i class="fas fa-search text-lg"></i>
-            <span class="text-[10px] font-bold">Cari</span>
-        </button>
-    </nav>
-
-    <!-- FULL SCREEN DETAIL VIEW -->
-    <div id="fullDetailView" class="fade-in">
-        <!-- Content Injected via JS -->
     </div>
 
-    <script>
-        const API_URL = 'https://zeldvorik.ru/apiv3/api.php';
-        let currentAction = 'trending';
-        let currentPage = 1;
-
-        async function fetchAPI(action, params = {}) {
-            try {
-                const u = new URL(API_URL);
-                u.searchParams.set('action', action);
-                Object.keys(params).forEach(k => u.searchParams.set(k, params[k]));
-                const r = await fetch(u);
-                return await r.json();
-            } catch (e) { return null; }
-        }
-
-        function createSkeletons(targetId) {
-            const g = document.getElementById(targetId);
-            g.innerHTML = '';
-            for(let i=0; i<6; i++) {
-                g.innerHTML += `
-                    <div class="flex flex-col gap-3">
-                        <div class="skeleton aspect-[2/3] rounded-2xl"></div>
-                        <div class="skeleton h-4 w-full rounded"></div>
-                    </div>`;
-            }
-        }
-
-        async function loadContent(action, page = 1, append = false) {
-            if (!append) { 
-                createSkeletons('movieGrid'); 
-                currentPage = 1; 
-                window.scrollTo(0,0); 
-            }
-            
-            const res = await fetchAPI(action, { page });
-            const g = document.getElementById('movieGrid');
-            const lm = document.getElementById('loadMoreArea');
-
-            if (!append) g.innerHTML = '';
-            
-            if (res && res.success && res.items) {
-                res.items.forEach(item => {
-                    const card = document.createElement('div');
-                    card.className = "group active:scale-95 transition-transform cursor-pointer";
-                    card.onclick = () => openDetail(item.detailPath);
-                    card.innerHTML = `
-                        <div class="relative aspect-[2/3] rounded-2xl overflow-hidden bg-white/5 mb-3 border border-white/5 shadow-xl">
-                            <img src="${item.poster}" class="w-full h-full object-cover" loading="lazy">
-                            <div class="absolute top-2 right-2 bg-black/60 backdrop-blur px-2 py-1 rounded-lg text-[10px] font-black border border-white/10">
-                                <i class="fas fa-star text-yellow-500 mr-1"></i>${item.rating || 'N/A'}
-                            </div>
-                        </div>
-                        <h3 class="text-[11px] font-bold line-clamp-1 uppercase tracking-tight px-1">${item.title}</h3>
-                        <p class="text-[9px] text-gray-500 px-1 mt-0.5">${item.year || ''} • ${item.type || 'Content'}</p>
-                    `;
-                    g.appendChild(card);
-                });
-                lm.classList.toggle('hidden', !res.hasMore);
-            }
-        }
-
-        async function openDetail(path) {
-            const detailView = document.getElementById('fullDetailView');
-            detailView.style.display = 'block';
-            document.body.style.overflow = 'hidden';
-
-            detailView.innerHTML = `
-                <div class="flex flex-col items-center justify-center h-screen gap-4">
-                    <div class="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
-                    <p class="text-[10px] font-black tracking-[0.3em] text-red-600 uppercase">Menyiapkan XyStream...</p>
+    <!-- Main App -->
+    <div id="app-content" class="opacity-0 transition-opacity duration-1000">
+        <!-- Navbar -->
+        <nav class="sticky top-0 z-50 bg-[#171a21]/95 backdrop-blur-md border-b border-gray-800">
+            <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <i class="fa-brands fa-steam text-3xl text-[#66c0f4]"></i>
+                    <span class="text-xl font-black text-white uppercase tracking-tighter">Steam<span class="text-[#66c0f4]">Share</span></span>
                 </div>
-            `;
-
-            const res = await fetchAPI('detail', { detailPath: path });
-            const item = res?.item || res?.data || res?.result;
-
-            if (res && res.success && item) {
-                const isSeries = item.seasons && item.seasons.length > 0;
                 
-                detailView.innerHTML = `
-                    <!-- Header Actions -->
-                    <div class="fixed top-0 w-full z-50 px-6 py-8 flex justify-between items-center bg-gradient-to-b from-black/90 to-transparent">
-                        <button onclick="closeDetail()" class="w-12 h-12 rounded-full bg-black/40 backdrop-blur-xl flex items-center justify-center border border-white/10">
-                            <i class="fas fa-arrow-left"></i>
-                        </button>
-                        <button class="w-12 h-12 rounded-full bg-black/40 backdrop-blur-xl flex items-center justify-center border border-white/10">
-                            <i class="fas fa-share-alt"></i>
-                        </button>
-                    </div>
+                <div class="flex items-center gap-4">
+                    <!-- Tombol Gembok untuk Admin -->
+                    <button id="adminBtn" class="text-gray-500 hover:text-[#f59e0b] transition p-2">
+                        <i id="lock-icon" class="fa-solid fa-lock text-lg"></i>
+                    </button>
+                    <a href="https://t.me/FREE_STEAM_ACCOUNT_DISCUSSION" target="_blank" class="bg-[#0088cc] px-6 py-2 rounded-full text-white font-bold items-center gap-2 hover:brightness-110 transition shadow-lg flex">
+                        <i class="fa-brands fa-telegram text-lg"></i> <span class="hidden sm:inline">Grup Diskusi</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
 
-                    <!-- Hero Player / Image -->
-                    <div class="relative w-full">
-                        <div id="playerBox" class="video-container hidden">
-                            <iframe id="videoFrame" src="" frameborder="0" allowfullscreen></iframe>
-                        </div>
-                        <div id="posterBox" class="relative w-full aspect-[4/5]">
-                            <img src="${item.poster}" class="w-full h-full object-cover">
-                            <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
-                            <div class="absolute bottom-10 left-0 w-full flex flex-col items-center">
-                                <button onclick="startPlayback('${item.playerUrl}')" class="w-20 h-20 rounded-full bg-red-600 flex items-center justify-center text-3xl shadow-[0_0_40px_rgba(255,0,0,0.4)] mb-4 active:scale-110 transition">
-                                    <i class="fas fa-play ml-1"></i>
-                                </button>
-                                <p class="text-[10px] font-black uppercase tracking-[0.3em] text-white">Putar Sekarang</p>
-                            </div>
-                        </div>
-                    </div>
+        <!-- Iklan Atas -->
+        <div class="container mx-auto px-6 pt-10">
+            <div class="ad-container w-full h-24 mb-10 flex flex-col items-center justify-center">
+                <span class="text-[10px] text-gray-600 mb-1 tracking-[0.3em]">IKLAN BANNER</span>
+                <img src="https://via.placeholder.com/728x90/171a21/66c0f4?text=DAFTAR+ADSENSE+UNTUK+HASILKAN+UANG" alt="Iklan" class="max-w-full h-full object-contain">
+            </div>
 
-                    <!-- Meta Data -->
-                    <div class="px-6 py-8">
-                        <h2 class="text-3xl font-black uppercase italic tracking-tighter mb-4 leading-tight">${item.title}</h2>
-                        
-                        <div class="flex flex-wrap gap-2 mb-8">
-                            <span class="bg-red-600 text-[10px] font-black px-3 py-1.5 rounded-lg uppercase">${item.year || '2024'}</span>
-                            <span class="bg-white/10 text-[10px] font-black px-3 py-1.5 rounded-lg uppercase flex items-center gap-2">
-                                <i class="fas fa-star text-yellow-500"></i> ${item.rating || 'N/A'}
-                            </span>
-                            <span class="bg-white/10 text-[10px] font-black px-3 py-1.5 rounded-lg uppercase">${item.genre || 'Media'}</span>
-                        </div>
+            <div class="text-center mb-12">
+                <h1 class="text-4xl md:text-6xl font-black text-white mb-4 tracking-tighter">DATABASE AKUN STEAM</h1>
+                <p class="text-gray-400 max-w-xl mx-auto italic font-light">"Berbagi Akun Game Original Gratis Untuk Semua"</p>
+            </div>
+        </div>
 
-                        <div class="mb-10">
-                            <h3 class="text-[11px] font-black text-red-600 uppercase tracking-widest mb-3">Sinopsis</h3>
-                            <p class="text-gray-400 text-sm leading-relaxed">${item.description || 'Sinopsis tidak tersedia di database XyStream.'}</p>
-                        </div>
+        <!-- Panel Admin -->
+        <div id="adminPanel" class="container mx-auto px-6">
+            <div class="p-6 rounded-2xl bg-[#f59e0b]/5 border border-[#f59e0b]/20 mb-8">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-orange-500 font-bold uppercase tracking-widest text-sm">
+                        <i class="fa-solid fa-screwdriver-wrench mr-2"></i> Control Panel Admin
+                    </h3>
+                    <button id="closeAdminBtn" class="text-xs bg-red-500/20 px-3 py-1 rounded-full text-red-500 hover:bg-red-500 hover:text-white transition">Tutup</button>
+                </div>
+                <form id="accForm" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <input type="text" id="gameTitle" placeholder="Nama Game" class="bg-[#171a21] border border-gray-700 p-3 rounded-xl outline-none focus:border-[#66c0f4] text-sm text-white" required>
+                    <input type="text" id="username" placeholder="Username Akun" class="bg-[#171a21] border border-gray-700 p-3 rounded-xl outline-none focus:border-[#66c0f4] text-sm text-white" required>
+                    <input type="text" id="password" placeholder="Password Akun" class="bg-[#171a21] border border-gray-700 p-3 rounded-xl outline-none focus:border-[#66c0f4] text-sm text-white" required>
+                    <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white font-black py-3 rounded-xl transition shadow-lg">POSTING AKUN</button>
+                </form>
+            </div>
+        </div>
 
-                        <!-- Playlist Section -->
-                        <div class="mb-20">
-                            <div class="flex items-center justify-between mb-6">
-                                <h3 class="text-lg font-black uppercase italic border-l-4 border-red-600 pl-3">Daftar Episode</h3>
-                                <span class="text-[10px] text-gray-500 font-bold uppercase">${isSeries ? item.seasons.length : '1'} Konten</span>
-                            </div>
-                            
-                            <div class="flex flex-col gap-3">
-                                ${isSeries ? item.seasons.map((s, idx) => `
-                                    <button onclick="startPlayback('${s.playerUrl}')" class="bg-white/5 border border-white/5 p-5 rounded-2xl flex items-center justify-between active:bg-red-600 transition group text-left">
-                                        <div class="flex flex-col">
-                                            <span class="text-[9px] font-black text-gray-500 group-active:text-white/60 mb-1">EPISODE ${idx + 1}</span>
-                                            <span class="text-sm font-bold truncate max-w-[200px]">${s.title}</span>
-                                        </div>
-                                        <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-active:bg-white/30">
-                                            <i class="fas fa-play text-[10px]"></i>
-                                        </div>
-                                    </button>
-                                `).join('') : `
-                                    <button onclick="startPlayback('${item.playerUrl}')" class="bg-red-600/10 border border-red-600/20 p-6 rounded-3xl flex items-center justify-between active:bg-red-600 transition group">
-                                        <span class="font-black italic uppercase tracking-widest text-sm">Server Utama</span>
-                                        <i class="fas fa-play-circle text-2xl"></i>
-                                    </button>
-                                `}
-                            </div>
-                        </div>
-                    </div>
-                `;
+        <!-- Grid Akun -->
+        <div class="container mx-auto px-6 grid grid-cols-1 lg:grid-cols-4 gap-8 mb-20">
+            <div class="lg:col-span-3">
+                <div id="accountsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-6 min-h-[300px]">
+                    <!-- Konten Akun -->
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="space-y-6">
+                <div class="bg-gradient-to-br from-[#0088cc] to-[#005588] p-8 rounded-3xl text-white shadow-2xl relative overflow-hidden group">
+                    <i class="fa-brands fa-telegram absolute -right-6 -bottom-6 text-9xl opacity-10 group-hover:scale-110 transition-transform"></i>
+                    <h3 class="text-2xl font-black mb-2 uppercase italic">Telegram</h3>
+                    <p class="text-xs text-blue-100 mb-6 relative z-10 font-medium">Gabung komunitas untuk update akun terbaru!</p>
+                    <a href="https://t.me/FREE_STEAM_ACCOUNT_DISCUSSION" target="_blank" class="block bg-white text-[#0088cc] text-center font-black py-3 rounded-2xl hover:bg-blue-50 transition relative z-10 shadow-lg">JOIN SEKARANG</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifikasi Toast -->
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-[#66c0f4] text-white px-8 py-4 rounded-2xl font-black shadow-2xl opacity-0 scale-90 z-[1000] pointer-events-none transition-all duration-300 uppercase tracking-widest text-xs text-center min-w-[200px]">
+        Berhasil!
+    </div>
+
+    <!-- Firebase Scripting -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyAf0q6V5c2Ii-GUz29to6k3PJ_ykTFDt2k",
+          authDomain: "mantap-39d34.firebaseapp.com",
+          projectId: "mantap-39d34",
+          storageBucket: "mantap-39d34.firebasestorage.app",
+          messagingSenderId: "574079637547",
+          appId: "1:574079637547:web:22f39dd01ed067b74df26e",
+          measurementId: "G-SD62258ZB1"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        
+        const appId = "kall-main-hub"; 
+        const ADMIN_PASSCODE = "1234"; 
+        let isAdmin = false;
+
+        // Inisialisasi Aplikasi
+        async function startApp() {
+            try {
+                await signInAnonymously(auth);
+            } catch (err) {
+                console.error("Auth error:", err);
             }
         }
 
-        function startPlayback(url) {
-            if(!url) return;
-            const pb = document.getElementById('playerBox');
-            const poster = document.getElementById('posterBox');
-            const frame = document.getElementById('videoFrame');
-            
-            pb.classList.remove('hidden');
-            poster.classList.add('hidden');
-            frame.src = url;
-            
-            // Scroll to player
-            document.getElementById('fullDetailView').scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function closeDetail() {
-            const dv = document.getElementById('fullDetailView');
-            dv.style.display = 'none';
-            document.body.style.overflow = 'auto';
-            const frame = document.getElementById('videoFrame');
-            if(frame) frame.src = "";
-        }
-
-        function navigate(action) {
-            if(currentAction === action) return;
-            currentAction = action;
-            
-            // Update UI Active State
-            document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
-            const activePill = document.getElementById(`pill-${action}`);
-            if(activePill) activePill.classList.add('active');
-
-            document.getElementById('sectionTitle').innerText = action.replace(/-/g, ' ').toUpperCase();
-            
-            toggleSearch(true);
-            loadContent(action);
-        }
-
-        function toggleSearch(forceClose = false) {
-            const overlay = document.getElementById('searchOverlay');
-            if(forceClose) overlay.classList.add('hidden');
-            else overlay.classList.toggle('hidden');
-            if(!overlay.classList.contains('hidden')) document.getElementById('searchInput').focus();
-        }
-
-        let sTimer;
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-            const q = e.target.value;
-            clearTimeout(sTimer);
-            if(q.length < 3) return;
-
-            sTimer = setTimeout(async () => {
-                const res = await fetchAPI('search', { q });
-                const rBox = document.getElementById('searchResults');
-                rBox.innerHTML = '';
-                if(res && res.items) {
-                    res.items.forEach(item => {
-                        const d = document.createElement('div');
-                        d.className = "flex flex-col gap-2 mb-4 cursor-pointer";
-                        d.onclick = () => { toggleSearch(true); openDetail(item.detailPath); };
-                        d.innerHTML = `
-                            <div class="relative aspect-[2/3] rounded-xl overflow-hidden bg-white/5">
-                                <img src="${item.poster}" class="w-full h-full object-cover">
-                            </div>
-                            <span class="text-[10px] font-bold line-clamp-1 uppercase px-1">${item.title}</span>
-                        `;
-                        rBox.appendChild(d);
-                    });
-                }
-            }, 600);
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                loadData();
+                hideLoader();
+            }
         });
 
-        function loadMore() {
-            currentPage++;
-            loadContent(currentAction, currentPage, true);
+        function hideLoader() {
+            setTimeout(() => {
+                document.getElementById('loading-screen').style.opacity = '0';
+                document.getElementById('app-content').style.opacity = '1';
+                setTimeout(() => document.getElementById('loading-screen').style.display = 'none', 800);
+            }, 1000);
         }
 
-        window.onload = () => loadContent('trending');
+        // Ambil Data
+        function loadData() {
+            const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'accounts'));
+            
+            onSnapshot(q, (snapshot) => {
+                const container = document.getElementById('accountsContainer');
+                container.innerHTML = '';
+                
+                if (snapshot.empty) {
+                    container.innerHTML = `
+                        <div class="col-span-full py-20 text-center border-2 border-dashed border-gray-800 rounded-3xl opacity-30">
+                            <p class="font-bold uppercase tracking-widest text-xs">Database Kosong</p>
+                        </div>
+                    `;
+                    return;
+                }
 
+                snapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    const id = docSnap.id;
+                    const card = document.createElement('div');
+                    card.className = 'card-glass p-7 rounded-3xl relative overflow-hidden group border border-white/5';
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start mb-6">
+                            <div>
+                                <div class="text-[10px] text-[#66c0f4] font-black uppercase tracking-[0.2em] mb-1 italic">Account Ready</div>
+                                <h3 class="text-white font-black text-xl italic uppercase tracking-tighter">${data.game}</h3>
+                            </div>
+                            <div id="admin-actions-${id}" class="${isAdmin ? 'block' : 'hidden'}">
+                                <button onclick="window.deleteAcc('${id}')" class="text-red-500 p-2 hover:bg-red-500/20 rounded-lg"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="bg-black/40 p-3 rounded-2xl flex justify-between items-center border border-white/5">
+                                <span class="text-[9px] text-gray-500 font-black tracking-widest uppercase">Username</span>
+                                <div class="flex items-center gap-3">
+                                    <code class="text-sm font-bold text-[#66c0f4]">${data.user}</code>
+                                    <button onclick="window.copyToClipboard('${data.user}')" class="text-gray-500 hover:text-white"><i class="fa-regular fa-copy"></i></button>
+                                </div>
+                            </div>
+                            <div class="bg-black/40 p-3 rounded-2xl flex justify-between items-center border border-white/5">
+                                <span class="text-[9px] text-gray-500 font-black tracking-widest uppercase">Password</span>
+                                <div class="flex items-center gap-3">
+                                    <code class="text-sm font-bold text-[#66c0f4]">${data.pass}</code>
+                                    <button onclick="window.copyToClipboard('${data.pass}')" class="text-gray-500 hover:text-white"><i class="fa-regular fa-copy"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            }, (err) => {
+                console.error("Firestore error:", err);
+            });
+        }
+
+        // Logic Admin Terpusat (Diperbaiki agar window bisa akses)
+        window.requestAdminAccess = () => {
+            if (isAdmin) {
+                window.toggleAdmin(false);
+                return;
+            }
+            const pass = prompt("MASUKKAN PIN ADMIN:");
+            if (pass === ADMIN_PASSCODE) {
+                window.toggleAdmin(true);
+            } else if (pass !== null) {
+                alert("PIN SALAH JIER!");
+            }
+        };
+
+        window.toggleAdmin = (val) => {
+            isAdmin = val;
+            document.getElementById('adminPanel').style.display = val ? 'block' : 'none';
+            document.getElementById('lock-icon').className = val ? 'fa-solid fa-unlock text-orange-500' : 'fa-solid fa-lock';
+            loadData(); // Refresh list agar tombol hapus muncul/hilang
+        };
+
+        // Event Listeners untuk tombol-tombol HTML
+        document.getElementById('adminBtn').addEventListener('click', window.requestAdminAccess);
+        document.getElementById('closeAdminBtn').addEventListener('click', () => window.toggleAdmin(false));
+
+        // Form Submit
+        document.getElementById('accForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const game = document.getElementById('gameTitle').value;
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+
+            try {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'accounts'), {
+                    game, user, pass, timestamp: Date.now()
+                });
+                e.target.reset();
+                window.showToast("AKUN BERHASIL DI-POSTING!");
+            } catch (err) {
+                alert("Gagal: " + err.message);
+            }
+        });
+
+        // Hapus & Copy Global
+        window.deleteAcc = async (id) => {
+            if(confirm('Hapus akun ini dari database?')) {
+                try {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'accounts', id));
+                    window.showToast("AKUN DIHAPUS");
+                } catch (err) { alert("Gagal hapus!"); }
+            }
+        };
+
+        window.copyToClipboard = (text) => {
+            const el = document.createElement('textarea');
+            el.value = text;
+            document.body.appendChild(el); el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            window.showToast("DATA DISALIN!");
+        };
+
+        window.showToast = (msg) => {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.style.opacity = '1'; t.style.transform = 'translateX(-50%) scale(1)';
+            setTimeout(() => {
+                t.style.opacity = '0'; t.style.transform = 'translateX(-50%) scale(0.9)';
+            }, 2000);
+        }
+
+        startApp();
     </script>
 </body>
 </html>
