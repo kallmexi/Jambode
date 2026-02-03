@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>XyStream - Nonton Film & Anime</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Orbitron:wght@700;900&display=swap');
+
+        :root {
+            --primary: #ff0000;
+            --bg-dark: #000000;
+            --surface: #121212;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-dark);
+            color: #ffffff;
+            user-select: none;
+            -webkit-user-select: none;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Premium Logo Style */
+        .logo-font {
+            font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(135deg, #ffffff 0%, #ff0000 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
+        /* Bottom Nav Glassmorphism */
+        .bottom-nav {
+            background: rgba(10, 10, 10, 0.85);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        /* Full Screen Detail View */
+        #fullDetailView {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-dark);
+            z-index: 1000;
+            display: none;
+            overflow-y: auto;
+            scrollbar-width: none;
+        }
+
+        /* Skeleton Animation */
+        .skeleton {
+            background: linear-gradient(90deg, #111 25%, #222 50%, #111 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .category-pill {
+            flex: 0 0 auto;
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            background: rgba(255,255,255,0.05);
+            transition: all 0.3s;
+        }
+
+        .category-pill.active {
+            background: var(--primary);
+            box-shadow: 0 4px 12px rgba(255, 0, 0, 0.3);
+        }
+
+        /* Video Iframe container */
+        .video-container {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%; /* 16:9 Aspect Ratio */
+            background: #000;
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Smooth page transition */
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    </style>
+    <script>
+        // Anti-Inspect & Security
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.onkeydown = function(e) {
+            if (e.keyCode == 123 || (e.ctrlKey && e.shiftKey && [73, 67, 74].includes(e.keyCode)) || (e.ctrlKey && e.keyCode == 85)) return false;
+        };
+    </script>
+</head>
+<body class="no-scrollbar">
+
+    <!-- Top Header -->
+    <header class="fixed top-0 w-full z-50 px-6 py-4 flex items-center justify-between bg-gradient-to-b from-black/80 to-transparent">
+        <h1 class="logo-font text-2xl font-black italic">XYSTREAM</h1>
+        <div class="flex items-center gap-4">
+            <button onclick="toggleSearch()" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center">
+                <i class="fas fa-search text-sm text-gray-400"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Search Overlay -->
+    <div id="searchOverlay" class="fixed inset-0 bg-black z-[100] hidden flex-col p-6">
+        <div class="flex items-center gap-4 mb-8">
+            <button onclick="toggleSearch()" class="text-xl"><i class="fas fa-arrow-left"></i></button>
+            <input type="text" id="searchInput" placeholder="Cari film atau anime..." 
+                class="flex-1 bg-white/10 border-none rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-red-600 outline-none">
+        </div>
+        <div id="searchResults" class="grid grid-cols-2 gap-4 overflow-y-auto pb-20"></div>
+    </div>
+
+    <!-- Main Scrollable Area -->
+    <main class="pt-24 pb-32 px-4">
+        
+        <!-- Category Slider -->
+        <div class="flex gap-3 overflow-x-auto no-scrollbar mb-8 pb-2">
+            <div onclick="navigate('trending')" id="pill-trending" class="category-pill active">Trending</div>
+            <div onclick="navigate('indonesian-movies')" id="pill-indonesian-movies" class="category-pill">Film Indo</div>
+            <div onclick="navigate('anime')" id="pill-anime" class="category-pill">Anime</div>
+            <div onclick="navigate('kdrama')" id="pill-kdrama" class="category-pill">K-Drama</div>
+            <div onclick="navigate('short-tv')" id="pill-short-tv" class="category-pill">Short TV</div>
+            <div onclick="navigate('adult-comedy')" id="pill-adult-comedy" class="category-pill text-red-500">18+</div>
+        </div>
+
+        <h2 id="sectionTitle" class="text-xl font-black italic mb-6 border-l-4 border-red-600 pl-3 uppercase">TRENDING SEKARANG</h2>
+
+        <!-- Movie Grid -->
+        <div id="movieGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-4 md:gap-6">
+            <!-- Items injected by JS -->
+        </div>
+
+        <!-- Load More -->
+        <div id="loadMoreArea" class="mt-12 flex justify-center hidden">
+            <button onclick="loadMore()" class="bg-white/5 border border-white/10 text-white px-8 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest active:scale-95 transition">
+                Muat Lebih Banyak
+            </button>
+        </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav fixed bottom-0 w-full flex justify-around items-center py-3 z-[60]">
+        <button onclick="navigate('trending')" class="flex flex-col items-center gap-1 text-red-600">
+            <i class="fas fa-home text-lg"></i>
+            <span class="text-[10px] font-bold">Beranda</span>
+        </button>
+        <button onclick="navigate('anime')" class="flex flex-col items-center gap-1 text-gray-500">
+            <i class="fas fa-dragon text-lg"></i>
+            <span class="text-[10px] font-bold">Anime</span>
+        </button>
+        <button onclick="navigate('indonesian-movies')" class="flex flex-col items-center gap-1 text-gray-500">
+            <i class="fas fa-film text-lg"></i>
+            <span class="text-[10px] font-bold">Lokal</span>
+        </button>
+        <button onclick="toggleSearch()" class="flex flex-col items-center gap-1 text-gray-500">
+            <i class="fas fa-search text-lg"></i>
+            <span class="text-[10px] font-bold">Cari</span>
+        </button>
+    </nav>
+
+    <!-- FULL SCREEN DETAIL VIEW -->
+    <div id="fullDetailView" class="fade-in">
+        <!-- Content Injected via JS -->
+    </div>
+
+    <script>
+        const API_URL = 'https://zeldvorik.ru/apiv3/api.php';
+        let currentAction = 'trending';
+        let currentPage = 1;
+
+        async function fetchAPI(action, params = {}) {
+            try {
+                const u = new URL(API_URL);
+                u.searchParams.set('action', action);
+                Object.keys(params).forEach(k => u.searchParams.set(k, params[k]));
+                const r = await fetch(u);
+                return await r.json();
+            } catch (e) { return null; }
+        }
+
+        function createSkeletons(targetId) {
+            const g = document.getElementById(targetId);
+            g.innerHTML = '';
+            for(let i=0; i<6; i++) {
+                g.innerHTML += `
+                    <div class="flex flex-col gap-3">
+                        <div class="skeleton aspect-[2/3] rounded-2xl"></div>
+                        <div class="skeleton h-4 w-full rounded"></div>
+                    </div>`;
+            }
+        }
+
+        async function loadContent(action, page = 1, append = false) {
+            if (!append) { 
+                createSkeletons('movieGrid'); 
+                currentPage = 1; 
+                window.scrollTo(0,0); 
+            }
+            
+            const res = await fetchAPI(action, { page });
+            const g = document.getElementById('movieGrid');
+            const lm = document.getElementById('loadMoreArea');
+
+            if (!append) g.innerHTML = '';
+            
+            if (res && res.success && res.items) {
+                res.items.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = "group active:scale-95 transition-transform cursor-pointer";
+                    card.onclick = () => openDetail(item.detailPath);
+                    card.innerHTML = `
+                        <div class="relative aspect-[2/3] rounded-2xl overflow-hidden bg-white/5 mb-3 border border-white/5 shadow-xl">
+                            <img src="${item.poster}" class="w-full h-full object-cover" loading="lazy">
+                            <div class="absolute top-2 right-2 bg-black/60 backdrop-blur px-2 py-1 rounded-lg text-[10px] font-black border border-white/10">
+                                <i class="fas fa-star text-yellow-500 mr-1"></i>${item.rating || 'N/A'}
+                            </div>
+                        </div>
+                        <h3 class="text-[11px] font-bold line-clamp-1 uppercase tracking-tight px-1">${item.title}</h3>
+                        <p class="text-[9px] text-gray-500 px-1 mt-0.5">${item.year || ''} • ${item.type || 'Content'}</p>
+                    `;
+                    g.appendChild(card);
+                });
+                lm.classList.toggle('hidden', !res.hasMore);
+            }
+        }
+
+        async function openDetail(path) {
+            const detailView = document.getElementById('fullDetailView');
+            detailView.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+
+            detailView.innerHTML = `
+                <div class="flex flex-col items-center justify-center h-screen gap-4">
+                    <div class="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+                    <p class="text-[10px] font-black tracking-[0.3em] text-red-600 uppercase">Menyiapkan XyStream...</p>
+                </div>
+            `;
+
+            const res = await fetchAPI('detail', { detailPath: path });
+            const item = res?.item || res?.data || res?.result;
+
+            if (res && res.success && item) {
+                const isSeries = item.seasons && item.seasons.length > 0;
+                
+                detailView.innerHTML = `
+                    <!-- Header Actions -->
+                    <div class="fixed top-0 w-full z-50 px-6 py-8 flex justify-between items-center bg-gradient-to-b from-black/90 to-transparent">
+                        <button onclick="closeDetail()" class="w-12 h-12 rounded-full bg-black/40 backdrop-blur-xl flex items-center justify-center border border-white/10">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <button class="w-12 h-12 rounded-full bg-black/40 backdrop-blur-xl flex items-center justify-center border border-white/10">
+                            <i class="fas fa-share-alt"></i>
+                        </button>
+                    </div>
+
+                    <!-- Hero Player / Image -->
+                    <div class="relative w-full">
+                        <div id="playerBox" class="video-container hidden">
+                            <iframe id="videoFrame" src="" frameborder="0" allowfullscreen></iframe>
+                        </div>
+                        <div id="posterBox" class="relative w-full aspect-[4/5]">
+                            <img src="${item.poster}" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
+                            <div class="absolute bottom-10 left-0 w-full flex flex-col items-center">
+                                <button onclick="startPlayback('${item.playerUrl}')" class="w-20 h-20 rounded-full bg-red-600 flex items-center justify-center text-3xl shadow-[0_0_40px_rgba(255,0,0,0.4)] mb-4 active:scale-110 transition">
+                                    <i class="fas fa-play ml-1"></i>
+                                </button>
+                                <p class="text-[10px] font-black uppercase tracking-[0.3em] text-white">Putar Sekarang</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Meta Data -->
+                    <div class="px-6 py-8">
+                        <h2 class="text-3xl font-black uppercase italic tracking-tighter mb-4 leading-tight">${item.title}</h2>
+                        
+                        <div class="flex flex-wrap gap-2 mb-8">
+                            <span class="bg-red-600 text-[10px] font-black px-3 py-1.5 rounded-lg uppercase">${item.year || '2024'}</span>
+                            <span class="bg-white/10 text-[10px] font-black px-3 py-1.5 rounded-lg uppercase flex items-center gap-2">
+                                <i class="fas fa-star text-yellow-500"></i> ${item.rating || 'N/A'}
+                            </span>
+                            <span class="bg-white/10 text-[10px] font-black px-3 py-1.5 rounded-lg uppercase">${item.genre || 'Media'}</span>
+                        </div>
+
+                        <div class="mb-10">
+                            <h3 class="text-[11px] font-black text-red-600 uppercase tracking-widest mb-3">Sinopsis</h3>
+                            <p class="text-gray-400 text-sm leading-relaxed">${item.description || 'Sinopsis tidak tersedia di database XyStream.'}</p>
+                        </div>
+
+                        <!-- Playlist Section -->
+                        <div class="mb-20">
+                            <div class="flex items-center justify-between mb-6">
+                                <h3 class="text-lg font-black uppercase italic border-l-4 border-red-600 pl-3">Daftar Episode</h3>
+                                <span class="text-[10px] text-gray-500 font-bold uppercase">${isSeries ? item.seasons.length : '1'} Konten</span>
+                            </div>
+                            
+                            <div class="flex flex-col gap-3">
+                                ${isSeries ? item.seasons.map((s, idx) => `
+                                    <button onclick="startPlayback('${s.playerUrl}')" class="bg-white/5 border border-white/5 p-5 rounded-2xl flex items-center justify-between active:bg-red-600 transition group text-left">
+                                        <div class="flex flex-col">
+                                            <span class="text-[9px] font-black text-gray-500 group-active:text-white/60 mb-1">EPISODE ${idx + 1}</span>
+                                            <span class="text-sm font-bold truncate max-w-[200px]">${s.title}</span>
+                                        </div>
+                                        <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-active:bg-white/30">
+                                            <i class="fas fa-play text-[10px]"></i>
+                                        </div>
+                                    </button>
+                                `).join('') : `
+                                    <button onclick="startPlayback('${item.playerUrl}')" class="bg-red-600/10 border border-red-600/20 p-6 rounded-3xl flex items-center justify-between active:bg-red-600 transition group">
+                                        <span class="font-black italic uppercase tracking-widest text-sm">Server Utama</span>
+                                        <i class="fas fa-play-circle text-2xl"></i>
+                                    </button>
+                                `}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function startPlayback(url) {
+            if(!url) return;
+            const pb = document.getElementById('playerBox');
+            const poster = document.getElementById('posterBox');
+            const frame = document.getElementById('videoFrame');
+            
+            pb.classList.remove('hidden');
+            poster.classList.add('hidden');
+            frame.src = url;
+            
+            // Scroll to player
+            document.getElementById('fullDetailView').scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function closeDetail() {
+            const dv = document.getElementById('fullDetailView');
+            dv.style.display = 'none';
+            document.body.style.overflow = 'auto';
+            const frame = document.getElementById('videoFrame');
+            if(frame) frame.src = "";
+        }
+
+        function navigate(action) {
+            if(currentAction === action) return;
+            currentAction = action;
+            
+            // Update UI Active State
+            document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
+            const activePill = document.getElementById(`pill-${action}`);
+            if(activePill) activePill.classList.add('active');
+
+            document.getElementById('sectionTitle').innerText = action.replace(/-/g, ' ').toUpperCase();
+            
+            toggleSearch(true);
+            loadContent(action);
+        }
+
+        function toggleSearch(forceClose = false) {
+            const overlay = document.getElementById('searchOverlay');
+            if(forceClose) overlay.classList.add('hidden');
+            else overlay.classList.toggle('hidden');
+            if(!overlay.classList.contains('hidden')) document.getElementById('searchInput').focus();
+        }
+
+        let sTimer;
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const q = e.target.value;
+            clearTimeout(sTimer);
+            if(q.length < 3) return;
+
+            sTimer = setTimeout(async () => {
+                const res = await fetchAPI('search', { q });
+                const rBox = document.getElementById('searchResults');
+                rBox.innerHTML = '';
+                if(res && res.items) {
+                    res.items.forEach(item => {
+                        const d = document.createElement('div');
+                        d.className = "flex flex-col gap-2 mb-4 cursor-pointer";
+                        d.onclick = () => { toggleSearch(true); openDetail(item.detailPath); };
+                        d.innerHTML = `
+                            <div class="relative aspect-[2/3] rounded-xl overflow-hidden bg-white/5">
+                                <img src="${item.poster}" class="w-full h-full object-cover">
+                            </div>
+                            <span class="text-[10px] font-bold line-clamp-1 uppercase px-1">${item.title}</span>
+                        `;
+                        rBox.appendChild(d);
+                    });
+                }
+            }, 600);
+        });
+
+        function loadMore() {
+            currentPage++;
+            loadContent(currentAction, currentPage, true);
+        }
+
+        window.onload = () => loadContent('trending');
+
+    </script>
+</body>
+</html>
